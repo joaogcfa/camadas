@@ -21,8 +21,8 @@ import time
 
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem14201" # Mac    (variacao de)
-# serialName = "COM2"                  # Windows(variacao de)
+# serialName = "/dev/tty.usbmodem14201" # Mac    (variacao de)
+serialName = "C4M"                  # Windows(variacao de)
 
 
 def main():

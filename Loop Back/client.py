@@ -21,8 +21,8 @@ import time
 
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem14101" # Mac    (variacao de)
-# serialName = "COM1"                  # Windows(variacao de)
+# serialName = "/dev/tty.usbmodem14101" # Mac    (variacao de)
+serialName = "COM3"                  # Windows(variacao de)
 
 
 def main():
@@ -57,6 +57,7 @@ def main():
             i += 114
         payload = txBuffer[i:i+resto]
         payloadList.append(payload)
+        print("payload lista", payloadList)
 
         print('AUHAKJHAKJHKA', i+resto)
         print(len(payloadList))
@@ -70,10 +71,44 @@ def main():
         #finalmente vamos transmitir os tados. Para isso usamos a funçao sendData que é um método da camada enlace.
         #faça um print para avisar que a transmissão vai começar.
         #tente entender como o método send funciona!
-        print('vai começa o envio')
-        comc.sendData(tamanho_texto)
-        time.sleep(0.5)
-        comc.sendData(txBuffer)
+        handshake = [1, 114, 0, 0, 0, 0, 0, 0, 0, 0]
+        head = bytes(handshake)
+        payload_hs = bytes(114)
+        palavra = 'FIIM'
+        eop = palavra.encode()
+        print("eop", eop)
+        
+        pacote = head + payload_hs[:] + eop[:]
+        print(pacote)
+ 
+        comc.sendData(pacote)
+        time.sleep(5)
+        resposta, nRx = comc.getData(10)
+ 
+        if resposta != head:
+            pergunta = input("Servidor inativo. Tentar novamente? S/N")
+ 
+            if pergunta == "S":
+                #blabla
+                x=0
+            else:
+                #blavla
+                print("comunicação encerrada!")
+                comc.disable()
+                sys.exit(0)
+        else:
+            
+            e = 0
+            while e < len(payloadList):
+                
+                pacote_fragmentado = head + payloadList[e] + eop[:]
+                comc.sendData(pacote_fragmentado)
+                time.sleep(0.5)
+                resposta,nRx = comc.getData(10)
+                
+                e+=1
+                print(e)
+
 
         
 #-------------------------------------------------------------------------------------------------------
