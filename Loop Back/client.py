@@ -21,8 +21,8 @@ import time
 
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-#serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-serialName = "COM1"                  # Windows(variacao de)
+serialName = "/dev/tty.usbmodem14101" # Mac    (variacao de)
+# serialName = "COM1"                  # Windows(variacao de)
 
 
 def main():
@@ -33,35 +33,47 @@ def main():
     
         # Ativa comunicacao. Inicia os threads e a comunicação seiral 
         comc.enable()
+
+        pergunta = input("escolha sua imagem: ")
+        imageR = './imgs/{}.png'.format(pergunta)
+        txBuffer = open(imageR, 'rb').read()
+
         
-        HEAD = bytes(10)
-        HEAD[5] = int(2).to_bytes(1,2,byteorder='big')
+        tamanhoImagem = len(txBuffer)/114
+        resto = len(txBuffer) % 114
+
+        print('RESTOOOOOO', resto)
+
+        i = 0
+        payloadList = []
+
+        while i < len(txBuffer)-resto:
+
+            payload = txBuffer[i:i+114]
+
+            payloadList.append(payload)
+            print('AQUIIII')
+
+            i += 114
+        payload = txBuffer[i:i+resto]
+        payloadList.append(payload)
+
+        print('AUHAKJHAKJHKA', i+resto)
+        print(len(payloadList))
         #Se chegamos até aqui, a comunicação foi aberta com sucesso. Faça um print para informar.
         #aqui você deverá gerar os dados a serem transmitidos. 
         #seus dados a serem transmitidos são uma lista de bytes a serem transmitidos. Gere esta lista com o 
         #nome de txBuffer. Esla sempre irá armazenar os dados a serem enviados.
-        pergunta = input("escolha sua imagem: ")
-        imageR = './imgs/{}.png'.format(pergunta)
-        tempo_inicial = time.time()
-
-        print('carregando a imagem e o tamanho dela')
-
-        time.sleep(0.5)
-        txBuffer = open(imageR, 'rb').read()
-        tamanho_texto = (int(len(txBuffer))).to_bytes(4,byteorder = 'big')
-        print('tamanho de txBuffer: ',int.from_bytes(tamanho_texto,byteorder='big'))
-
-        #faça aqui uma conferência do tamanho do seu txBuffer, ou seja, quantos bytes serão enviados.
         
-        print('len txBuffer: ',len(txBuffer))
-        print('txBuffer: ',txBuffer)
+
+        #faça aqui uma conferência do tamanho do seu txBuffer, ou seja, quantos bytes serão enviados.        
         #finalmente vamos transmitir os tados. Para isso usamos a funçao sendData que é um método da camada enlace.
         #faça um print para avisar que a transmissão vai começar.
         #tente entender como o método send funciona!
         print('vai começa o envio')
-        comc.sendData(HEAD)
-        # time.sleep(0.5)
-        # comc.sendData(txBuffer)
+        comc.sendData(tamanho_texto)
+        time.sleep(0.5)
+        comc.sendData(txBuffer)
 
         
 #-------------------------------------------------------------------------------------------------------
