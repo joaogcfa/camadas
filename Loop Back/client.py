@@ -41,10 +41,12 @@ def main():
         
         tamanhoImagem = len(txBuffer)/114
         resto = len(txBuffer) % 114
+        
 
         print('RESTOOOOOO', resto)
 
         i = 0
+        e=0
         payloadList = []
 
         while i < len(txBuffer)-resto:
@@ -55,12 +57,17 @@ def main():
             print('AQUIIII')
 
             i += 114
+            e += 1
         payload = txBuffer[i:i+resto]
+        e+=1
         payloadList.append(payload)
         print("payload lista", payloadList)
 
         print('AUHAKJHAKJHKA', i+resto)
         print(len(payloadList))
+        print("e",e)
+        # tamanho_payload = len(payloadList[e])
+        # print("tamanho payload", tamanho_payload)
         #Se chegamos até aqui, a comunicação foi aberta com sucesso. Faça um print para informar.
         #aqui você deverá gerar os dados a serem transmitidos. 
         #seus dados a serem transmitidos são uma lista de bytes a serem transmitidos. Gere esta lista com o 
@@ -72,10 +79,10 @@ def main():
         #faça um print para avisar que a transmissão vai começar.
         #tente entender como o método send funciona!
         #[tipo, 0, quantidade de bytes, 0, numero do pacote,0,0,0,0,0 ]
-        handshake = [1, 0, 114, 0, 0, 0, 0, 0, 0, 0]
+        handshake = [1, 0, 114, 0, e, 0, 0, 0, 0, 0]
         head = bytes(handshake)
 
-        head_hand_server = [2, 0, 114, 0, 0, 0, 0, 0, 0, 0]
+        head_hand_server = [2, 0, 114, 0, e, 0, 0, 0, 0, 0]
         head_server = bytes(head_hand_server)
         
         payload_hs = bytes(114)
@@ -88,7 +95,10 @@ def main():
             pacote = head + payload_hs[:] + eop[:]
             print("pacote", pacote)
             comc.sendData(pacote)
+            time.sleep(0.5)
+            comc.sendData(pacote)
 
+#------------------------------------------
             resposta_head, nRx = comc.getData(10, True)
             resposta_pack, nRx = comc.getData(114, True)
             resposta_eop, nRx = comc.getData(4, True)
@@ -96,12 +106,13 @@ def main():
             return(resposta_head)
             
         resposta_head = enviadados(head, payload_hs, eop)
-        print('CHAMEI FUNCAAAAAAAAAAAAAAO')
+        print(resposta_head)
+        print(head_server)
 
 
  
         while resposta_head != head_server:
-            pergunta = input("Servidor inativo. Tentar novamente? S/N")
+            pergunta = input("Servidor inativo. Tentar novamente? S/N ")
 
             if pergunta == "S":
                 print("Tentando novamente")
@@ -117,23 +128,24 @@ def main():
         print("iniciando o envio dos pacotes")
         print("------------------------------------")
 
-        
+
         e = 0
         while e < len(payloadList):
             tamanho_payload = len(payloadList[e])  
             print(tamanho_payload)
-
             #tipo de mensagem, 0, tamanho_payload, 0, qual pacote      
-            head_certo = [2, 0, tamanho_payload , 0, e, 0, 0, 0, 0, 0]
-            
-            print ('primeiro envio do pacote')
-            pacote_fragmentado = head_certo + payloadList[e] + eop[:]
+            head_certo = [3, 0, tamanho_payload , 0, e, 0, 0, 0, 0, 0]
+            head_novo = bytes(head_certo)
+            pacote_fragmentado = head_novo + payloadList[e] + eop[:]
+            print('pacote a ser enviado: ', pacote_fragmentado)
             comc.sendData(pacote_fragmentado)
-            # time.sleep(0.5)
-            resposta,nRx = comc.getData(10, False)
             
-            e+=1
-            print(e)
+            # time.sleep(0.5)
+            banana, nRx = comc.getData(tamanho_payload, False)
+            if banana == payloadList[e]:
+                e+=1
+                print("O pacote {} foi enviado de {} pacotes".format(e,len(payloadList)))
+        print(e)
 
 
         

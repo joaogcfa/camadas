@@ -35,38 +35,61 @@ def main():
         coms.enable()
     
       
-        print('recepção do HandShake vai começa')
-        print('----------------------------------------')
-
+        
         imageW = "./imgs/imagem_recebido.png"
         print('peguei a imageW')
-        #acesso aos bytes recebidos
 
         resposta_head, nRx = coms.getData(128, True)
-        # resposta_pack, nRx = coms.getData(114, True)
-        # resposta_eop, nRx = coms.getData(4, True)
-        
         print(resposta_head)
+        len_pack = int.from_bytes(resposta_head[2:3], byteorder='big')
+        print('len_pack', len_pack)
+        pacotes = int.from_bytes(resposta_head[4:5], byteorder='big')
+        print('pacotes', pacotes)
+        pacotes_chegando = 0
+        rxBuffer = None
+        bytes_imagem = []
+        
+        #acesso aos bytes recebidos
+        while pacotes_chegando < pacotes:
+            print("entrou no while")
+            
+            tamanho_pacote = 10 + len_pack + 4 
+            print(tamanho_pacote)
+            resposta, nRx = coms.getData(tamanho_pacote, False)
+            len_pack = int.from_bytes(resposta_head[2:3], byteorder='big')
+                
+            
+            if resposta[0:1] == int(1).to_bytes(1, byteorder = 'big'):
+                print('recepção do HandShake vai começa')
+                print('----------------------------------------')
+                print("HandShake iniciado")
+                novo_head = [2, 0, 114, 0, pacotes, 0, 0, 0, 0, 0]
+                head = bytes(novo_head)
+                print(head)
 
-        #se o primeiro bit for 1 == handshake
+                pacote_hs_devolvido = head + resposta[10:128] 
+                print("pacote novo")
+                print(pacote_hs_devolvido)
+                coms.sendData(pacote_hs_devolvido)
+                print("Resposta do HandShake enviado")
 
-        #verificando se eh handshake:
-        if resposta_head[0:1] == int(1).to_bytes(1, byteorder = 'big'):
-            print("HandShake iniciado")
-            novo_head = [2, 0, 114, 0, 0, 0, 0, 0, 0, 0]
-            head = bytes(novo_head)
-            print(head)
+            if resposta[0:1] == int(3).to_bytes(1, byteorder = 'big'):        
+                print("entrei no segundo if")
+                valor = len_pack + 10
+                # print('valor', valor)
+                teste = resposta[10:valor]
+                bytes_imagem.append(teste)
+                print("lista", bytes_imagem)
+                coms.sendData(teste)
+                # testeee = int.from_bytes(teste, byteorder="big")
+                # print(testeee)
+                # rxBuffer += testeee
+                # print('rx buffer',rxBuffer)
+                # pacotes_chegando+=1
+                # print("Pacote {} recebido".format(pacotes_chegando))
 
-            pacote_hs_devolvido = head + resposta_head[10:128] 
-            print("pacote novo")
-            print(pacote_hs_devolvido)
-            coms.sendData(pacote_hs_devolvido)
-            print("Resposta do HandShake enviado")
 
-        else:
-            print("comunicação com o server encerrada!")
-            coms.disable()
-            sys.exit(0)
+
 
 
 
@@ -75,6 +98,7 @@ def main():
 
 
         # rxBuffer, nRx = coms.getData(tamanho1)
+        
         print('rxBuffer')
 
         time.sleep(0.1)
