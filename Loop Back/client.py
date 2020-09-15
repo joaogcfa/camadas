@@ -71,43 +71,69 @@ def main():
         #finalmente vamos transmitir os tados. Para isso usamos a funçao sendData que é um método da camada enlace.
         #faça um print para avisar que a transmissão vai começar.
         #tente entender como o método send funciona!
-        handshake = [1, 114, 0, 0, 0, 0, 0, 0, 0, 0]
+        #[tipo, 0, quantidade de bytes, 0, numero do pacote,0,0,0,0,0 ]
+        handshake = [1, 0, 114, 0, 0, 0, 0, 0, 0, 0]
         head = bytes(handshake)
+
+        head_hand_server = [2, 0, 114, 0, 0, 0, 0, 0, 0, 0]
+        head_server = bytes(head_hand_server)
+        
         payload_hs = bytes(114)
         palavra = 'FIIM'
         eop = palavra.encode()
         print("eop", eop)
         
-        pacote = head + payload_hs[:] + eop[:]
-        print(pacote)
+        def enviadados(head, payload_hs, eop):
+            print("entrou na função")
+            pacote = head + payload_hs[:] + eop[:]
+            print("pacote", pacote)
+            comc.sendData(pacote)
+
+            resposta_head, nRx = comc.getData(10, True)
+            resposta_pack, nRx = comc.getData(114, True)
+            resposta_eop, nRx = comc.getData(4, True)
+
+            return(resposta_head)
+            
+        resposta_head = enviadados(head, payload_hs, eop)
+        print('CHAMEI FUNCAAAAAAAAAAAAAAO')
+
+
  
-        comc.sendData(pacote)
-        time.sleep(5)
-        resposta, nRx = comc.getData(10)
- 
-        if resposta != head:
+        while resposta_head != head_server:
             pergunta = input("Servidor inativo. Tentar novamente? S/N")
- 
+
             if pergunta == "S":
-                #blabla
-                x=0
+                print("Tentando novamente")
+                resposta_head = enviadados(head, payload_hs, eop)
+                print()
             else:
-                #blavla
                 print("comunicação encerrada!")
                 comc.disable()
                 sys.exit(0)
-        else:
+
+
+        print("comunicação bem sucedida com o server")
+        print("iniciando o envio dos pacotes")
+        print("------------------------------------")
+
+        
+        e = 0
+        while e < len(payloadList):
+            tamanho_payload = len(payloadList[e])  
+            print(tamanho_payload)
+
+            #tipo de mensagem, 0, tamanho_payload, 0, qual pacote      
+            head_certo = [2, 0, tamanho_payload , 0, e, 0, 0, 0, 0, 0]
             
-            e = 0
-            while e < len(payloadList):
-                
-                pacote_fragmentado = head + payloadList[e] + eop[:]
-                comc.sendData(pacote_fragmentado)
-                time.sleep(0.5)
-                resposta,nRx = comc.getData(10)
-                
-                e+=1
-                print(e)
+            print ('primeiro envio do pacote')
+            pacote_fragmentado = head_certo + payloadList[e] + eop[:]
+            comc.sendData(pacote_fragmentado)
+            # time.sleep(0.5)
+            resposta,nRx = comc.getData(10, False)
+            
+            e+=1
+            print(e)
 
 
         
@@ -126,7 +152,7 @@ def main():
         #acesso aos bytes recebidos
 
 
-        tamanho_recebido, nRx = comc.getData(4)
+        tamanho_recebido, nRx = comc.getData(4, False)
         compara = int.from_bytes(tamanho_recebido,byteorder='big')
 
         if compara == len(txBuffer):

@@ -22,7 +22,7 @@ import time
 #use uma das 3 opcoes para atribuir à variável a porta usada
 #serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
 # serialName = "/dev/tty.usbmodem14201" # Mac    (variacao de)
-serialName = "C4M"                  # Windows(variacao de)
+serialName = "COM4"                  # Windows(variacao de)
 
 
 def main():
@@ -35,22 +35,46 @@ def main():
         coms.enable()
     
       
-        print('recepção vai começa')
-        #Será que todos os bytes enviados estão realmente guardadas? Será que conseguimos verificar?
-        #Veja o que faz a funcao do enlaceRX  getBufferLen
+        print('recepção do HandShake vai começa')
+        print('----------------------------------------')
 
         imageW = "./imgs/imagem_recebido.png"
-        print(imageW)
+        print('peguei a imageW')
         #acesso aos bytes recebidos
-        time.sleep(0.5)
-        tamanho, nRx = coms.getData(4)
-        print(tamanho)
 
-        tamanho1 = int.from_bytes(tamanho, byteorder='big')
-        print(tamanho1)
+        resposta_head, nRx = coms.getData(128, True)
+        # resposta_pack, nRx = coms.getData(114, True)
+        # resposta_eop, nRx = coms.getData(4, True)
+        
+        print(resposta_head)
+
+        #se o primeiro bit for 1 == handshake
+
+        #verificando se eh handshake:
+        if resposta_head[0:1] == int(1).to_bytes(1, byteorder = 'big'):
+            print("HandShake iniciado")
+            novo_head = [2, 0, 114, 0, 0, 0, 0, 0, 0, 0]
+            head = bytes(novo_head)
+            print(head)
+
+            pacote_hs_devolvido = head + resposta_head[10:128] 
+            print("pacote novo")
+            print(pacote_hs_devolvido)
+            coms.sendData(pacote_hs_devolvido)
+            print("Resposta do HandShake enviado")
+
+        else:
+            print("comunicação com o server encerrada!")
+            coms.disable()
+            sys.exit(0)
 
 
-        rxBuffer, nRx = coms.getData(tamanho1)
+
+        # tamanho1 = int.from_bytes(tamanho, byteorder='big')
+        # print(tamanho1)
+
+
+        # rxBuffer, nRx = coms.getData(tamanho1)
         print('rxBuffer')
 
         time.sleep(0.1)

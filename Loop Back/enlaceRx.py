@@ -67,9 +67,13 @@ class RX(object):
         self.threadResume()
         return(b)
 
-    def getNData(self, size):
+    def getNData(self, size, quero):
+        tempo = 0
         while(self.getBufferLen() < size):
-            time.sleep(0.05)                 
+            tempo += 0.05
+            time.sleep(0.05)
+            if tempo > 5 and quero==True:
+               break         
         return(self.getBuffer(size))
 
 
