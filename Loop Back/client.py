@@ -130,15 +130,21 @@ def main():
             tamanho_payload = len(payloadList[e])  
             print(tamanho_payload)
             #tipo de mensagem, 0, tamanho_payload, 0, qual pacote      
-            head_certo = [3, 0, tamanho_payload , 0, e, 0, 0, 0, 0, 0]
+            head_certo = [3, 0, tamanho_payload , 0, total_depack, 0, e, 0, 0, 0]
             head_novo = bytes(head_certo)
             pacote_fragmentado = head_novo + payloadList[e] + eop[:]
             # print('LEN DE PACOTE FRAGAMENTO-----------------', len(pacote_fragmentado))
             comc.sendData(pacote_fragmentado)
             print("O pacote {} foi enviado de {} pacotes".format(e,len(payloadList)))
             
+            # if e == 0:
+            #     e+=1
+            print(e)
+
+
+
             # time.sleep(0.5)
-            pacote_server, nRx = comc.getData(len(pacote_fragmentado), False)
+            pacote_server, nRx = comc.getData(len(pacote_fragmentado), True)
             if pacote_server == pacote_fragmentado:
                 print("-------------------------")
                 print("Pacotes estão iguais")
@@ -156,7 +162,7 @@ def main():
                 print('erro: Pacotes não estavam iguais')
                 comc.disable()
                 sys.exit(0)
-        print(e)
+        
 
 
     

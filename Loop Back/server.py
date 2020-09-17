@@ -52,38 +52,52 @@ def main():
         while pacotes_chegando < pacotes:
             print("entrou no while")
             cabecalho, nRx = coms.getData(10,False)
-            size_pay = int.from_bytes(cabecalho[2:3], byteorder='big')
-            payload, nRx = coms.getData(size_pay,False)
-            eop, nRx = coms.getData(4,False)
+            print('pacotes chegando ',pacotes_chegando)
+            print('cabecalho ',int.from_bytes(cabecalho[6:7], byteorder='big'))
 
-            resposta = cabecalho + payload + eop
-            print('pacotes chegando',pacotes_chegando)
-            print('cabecalho',int.from_bytes(cabecalho[4:5], byteorder='big'))
+            if int.from_bytes(cabecalho[6:7], byteorder='big') == pacotes_chegando:
+                size_pay = int.from_bytes(cabecalho[2:3], byteorder='big')
+                payload, nRx = coms.getData(size_pay,False)
+                eop, nRx = coms.getData(4,False)
 
+                resposta = cabecalho + payload + eop
 
-                            
-                
-            if resposta[0:1] == int(1).to_bytes(1, byteorder = 'big'):
-                print('recepção do HandShake vai começa')
-                print('----------------------------------------')
-                print("HandShake iniciado")
-                novo_head = [2, 0, 114, 0, pacotes, 0, 0, 0, 0, 0]
-                head = bytes(novo_head)
+                # palavra = "FIIM"
+                # teste_eop = palavra.encode
+                # print(teste_eop)
 
-                pacote_hs_devolvido = head + resposta[10:128] 
-                print("pacote novo")
-                coms.sendData(pacote_hs_devolvido)
-                print("Resposta do HandShake enviado")
+                if eop == "FIIM".encode():
 
-            if resposta[0:1] == int(3).to_bytes(1, byteorder = 'big'):        
-                print("entrei no segundo if")
-                valor = size_pay + 10
-                # print('valor', valor)
-                teste = resposta[10:valor]
-                bytes_imagem.append(teste)
-                coms.sendData(resposta)
-                pacotes_chegando+=1
-                print(pacotes_chegando)
+                    if resposta[0:1] == int(1).to_bytes(1, byteorder = 'big'):
+                        print('recepção do HandShake vai começa')
+                        print('----------------------------------------')
+                        print("HandShake iniciado")
+                        novo_head = [2, 0, 114, 0, pacotes, 0, 0, 0, 0, 0]
+                        head = bytes(novo_head)
+
+                        pacote_hs_devolvido = head + resposta[10:128] 
+                        print("pacote novo")
+                        coms.sendData(pacote_hs_devolvido)
+                        print("Resposta do HandShake enviado")
+
+                    if resposta[0:1] == int(3).to_bytes(1, byteorder = 'big'):        
+                        print("entrei no segundo if")
+                        valor = size_pay + 10
+                        # print('valor', valor)
+                        teste = resposta[10:valor]
+                        bytes_imagem.append(teste)
+                        coms.sendData(resposta)
+                        pacotes_chegando+=1
+                        print(pacotes_chegando)
+                    
+                else:
+                    print("Tamanho de payload não era igual ao informado")
+                    comc.disable()
+                    sys.exit(0)
+            else:
+                print("Pacote enviado não era o esperado")
+                comc.disable()
+                sys.exit(0)
 
 
 
