@@ -46,18 +46,18 @@ def main():
         pacotes = int.from_bytes(resposta_head[4:5], byteorder='big')
         print('pacotes', pacotes)
         pacotes_chegando = 0
-        rxBuffer = None
+        rxBuffer = bytearray()
         bytes_imagem = []
         
         #acesso aos bytes recebidos
         while pacotes_chegando < pacotes:
             print("entrou no while")
-            
-            tamanho_pacote = 10 + len_pack + 4 
-            print(tamanho_pacote)
-            resposta, nRx = coms.getData(tamanho_pacote, False)
-            len_pack = int.from_bytes(resposta_head[2:3], byteorder='big')
-                
+            cabecalho, nRx = coms.getData(10,False)
+            size_pay = int.from_bytes(cabecalho[2:3], byteorder='big')
+            payload, nRx = coms.getData(size_pay,False)
+            eop, nRx = coms.getData(4,False)
+
+            resposta = cabecalho + payload + eop            
             
             if resposta[0:1] == int(1).to_bytes(1, byteorder = 'big'):
                 print('recepção do HandShake vai começa')
@@ -81,25 +81,17 @@ def main():
                 bytes_imagem.append(teste)
                 print("lista", bytes_imagem)
                 coms.sendData(teste)
-                # testeee = int.from_bytes(teste, byteorder="big")
-                # print(testeee)
-                # rxBuffer += testeee
-                # print('rx buffer',rxBuffer)
-                # pacotes_chegando+=1
-                # print("Pacote {} recebido".format(pacotes_chegando))
+                pacotes_chegando+=1
+                print(pacotes_chegando)
+  
 
 
+        for e in bytes_imagem:
+            rxBuffer += e
 
-
-
-
-        # tamanho1 = int.from_bytes(tamanho, byteorder='big')
-        # print(tamanho1)
-
-
-        # rxBuffer, nRx = coms.getData(tamanho1)
         
-        print('rxBuffer')
+        
+        print(rxBuffer)
 
         time.sleep(0.1)
         tamanho_rx_recebido = (int(len(rxBuffer))).to_bytes(4,byteorder = 'big')
