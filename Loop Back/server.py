@@ -37,14 +37,13 @@ def main():
       
         
         imageW = "./imgs/imagem_recebido.png"
-        print('peguei a imageW')
+        print('peguei o diretorio da imagem a ser colada')
 
-        resposta_head, nRx = coms.getData(128, True)
-        print(resposta_head)
-        len_pack = int.from_bytes(resposta_head[2:3], byteorder='big')
-        print('len_pack', len_pack)
+        resposta_head, nRx = coms.getData(128, False)
+        print("-------------------------")
+        print("Peguei o Handshake")
+        print("-------------------------")
         pacotes = int.from_bytes(resposta_head[4:5], byteorder='big')
-        print('pacotes', pacotes)
         pacotes_chegando = 0
         rxBuffer = bytearray()
         bytes_imagem = []
@@ -57,33 +56,35 @@ def main():
             payload, nRx = coms.getData(size_pay,False)
             eop, nRx = coms.getData(4,False)
 
-            resposta = cabecalho + payload + eop            
-            
+            resposta = cabecalho + payload + eop
+            print('pacotes chegando',pacotes_chegando)
+            print('cabecalho',int.from_bytes(cabecalho[4:5], byteorder='big'))
+
+
+                            
+                
             if resposta[0:1] == int(1).to_bytes(1, byteorder = 'big'):
                 print('recepção do HandShake vai começa')
                 print('----------------------------------------')
                 print("HandShake iniciado")
                 novo_head = [2, 0, 114, 0, pacotes, 0, 0, 0, 0, 0]
                 head = bytes(novo_head)
-                print(head)
 
                 pacote_hs_devolvido = head + resposta[10:128] 
                 print("pacote novo")
-                print(pacote_hs_devolvido)
                 coms.sendData(pacote_hs_devolvido)
                 print("Resposta do HandShake enviado")
 
             if resposta[0:1] == int(3).to_bytes(1, byteorder = 'big'):        
                 print("entrei no segundo if")
-                valor = len_pack + 10
+                valor = size_pay + 10
                 # print('valor', valor)
                 teste = resposta[10:valor]
                 bytes_imagem.append(teste)
-                print("lista", bytes_imagem)
-                coms.sendData(teste)
+                coms.sendData(resposta)
                 pacotes_chegando+=1
                 print(pacotes_chegando)
-  
+
 
 
         for e in bytes_imagem:
@@ -91,7 +92,6 @@ def main():
 
         
         
-        print(rxBuffer)
 
         time.sleep(0.1)
         tamanho_rx_recebido = (int(len(rxBuffer))).to_bytes(4,byteorder = 'big')
