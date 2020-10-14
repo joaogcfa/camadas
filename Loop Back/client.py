@@ -38,8 +38,8 @@ def main():
         txt_1 = open("Client1.txt", "w")
         txt_2 = open("Client3.txt", "w")
         # txt_3 = open("Client3.txt", "w")
-        txt_4 = open("Client4.txt", "w")
-        txt_5 = open("Client5.txt", "w")
+        txt_4 = open("Client5.txt", "w")
+        # txt_5 = open("Client5.txt", "w")
 
         ##Escolhendo a imagem
         pergunta = input("escolha sua imagem: ")
@@ -329,7 +329,7 @@ def main():
         txt_2.close()
         # txt_3.close()
         txt_4.close()
-        txt_5.close()
+        # txt_5.close()
     except:
         print("ops! :-\\")
         comc.disable()

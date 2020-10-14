@@ -225,6 +225,7 @@ def main():
                     print("Timer 1 excedido")
                     novo_head = [4, 7, 9, total_depack, cont_server+1, size_pay,0, cont_server, 0, 0]
                     head_4 = bytes(novo_head)
+                    pacote_resposta = head_4 + bytes(114) + "FIIM".encode()
                     coms.sendData(pacote_resposta)
                     dateTimeObj = datetime.now()
                     txt_4.write(str(dateTimeObj))
